@@ -184,31 +184,14 @@
     </div>
 
     <script>
-        // Расписание 10 "В" (1 - Пн, 2 - Вт, 3 - Ср, 4 - Чт, 5 - Пт)
         const schedule = {
-            1: [
-                "Классный час", "Физика", "Информатика", "Алгебра", 
-                "Русский язык", "Иностранный язык", "Биология"
-            ],
-            2: [
-                "Биология", "Казахский язык", "История Казахстана", "Алгебра", 
-                "География", "Геометрия", "Физкультура (А)"
-            ],
-            3: [
-                "Русская литература", "Химия", "Алгебра", "История Казахстана", 
-                "Казахский язык", "Иностранный язык", "Физкультура (Б)"
-            ],
-            4: [
-                "Геометрия", "Физика", "Казахский язык", "Иностранный язык", 
-                "Осн.пр.", "Физкультура (А)", "НВП"
-            ],
-            5: [
-                "Русская литература", "Всемирная История", "Алгебра", 
-                "Химия", "Информатика", "Казахский язык", "География"
-            ]
+            1: ["Классный час", "Физика", "Информатика", "Алгебра", "Русский язык", "Иностранный язык", "Биология"],
+            2: ["Биология", "Казахский язык", "История Казахстана", "Алгебра", "География", "Геометрия", "Физкультура (А)"],
+            3: ["Русская литература", "Химия", "Алгебра", "История Казахстана", "Казахский язык", "Иностранный язык", "Физкультура (Б)"],
+            4: ["Геометрия", "Физика", "Казахский язык", "Иностранный язык", "Осн.пр.", "Физкультура (А)", "НВП"],
+            5: ["Русская литература", "Всемирная История", "Алгебра", "Химия", "Информатика", "Казахский язык", "География"]
         };
 
-        // Время уроков (1 смена: 08:00 - 13:55)
         const times = [
             { start: "08:00", end: "08:45" },
             { start: "08:50", end: "09:35" },
@@ -219,7 +202,7 @@
             { start: "13:10", end: "13:55" }
         ];
 
-        let manualDayOverride = 0; // 0 - авто по реальному дню
+        let manualDayOverride = 0;
 
         function setManualDay(day) {
             manualDayOverride = day;
@@ -240,12 +223,10 @@
 
         function updateWidget() {
             const now = new Date();
-            
-            // Дата сверху
             const options = { weekday: 'short', month: 'numeric', day: 'numeric' };
             document.getElementById('current-date').innerText = now.toLocaleDateString('ru-RU', options);
 
-            let jsDay = now.getDay(); // 0 - вс, 1 - пн ... 6 - сб
+            let jsDay = now.getDay();
             let activeDay = manualDayOverride > 0 ? manualDayOverride : jsDay;
 
             const cNameEl = document.getElementById('current-name');
@@ -254,7 +235,6 @@
             const nextNameEl = document.getElementById('next-name');
             const progressBar = document.getElementById('progress');
 
-            // Если выходной или ручной день вне пн-пт
             if (activeDay < 1 || activeDay > 5) {
                 statusEl.innerText = "Выходной";
                 cNameEl.innerText = "Отдыхаем 🎉";
@@ -267,44 +247,38 @@
             const dayLessons = schedule[activeDay];
 
             if (manualDayOverride > 0) {
-                // Если выбран конкретный день кнопкой, показываем просто список первого урока или весь день
-                statusEl.innerText = `День недели (${['ПН','ВТ','СР','ЧТ','ПТ'][activeDay-1]})`;
+                statusEl.innerText = `День (${['ПН','ВТ','СР','ЧТ','ПТ'][activeDay-1]})`;
                 cNameEl.innerText = dayLessons[0] || "Нет уроков";
-                cTimeEl.innerText = `Всего уроков: ${dayLessons.length}`;
+                cTimeEl.innerText = `Всего: ${dayLessons.length} урока`;
                 nextNameEl.innerText = dayLessons[1] || "Конец";
                 progressBar.style.width = "100%";
                 return;
             }
 
-            // Режим реального времени (Авто)
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const currentSecondsTotal = currentMinutes * 60 + now.getSeconds();
 
             let foundLessonIndex = -1;
             let isBreak = false;
-            let nextIndex = 0;
 
             for (let i = 0; i < times.length; i++) {
                 let sMin = timeToMinutes(times[i].start);
                 let eMin = timeToMinutes(times[i].end);
 
-                // Идет урок
                 if (currentMinutes >= sMin && currentMinutes < eMin) {
                     foundLessonIndex = i;
                     break;
                 }
-                // Перемена перед этим или между уроками
                 if (i > 0) {
                     let prevEMin = timeToMinutes(times[i-1].end);
                     if (currentMinutes >= prevEMin && currentMinutes < sMin) {
                         isBreak = true;
-                        foundLessonIndex = i - 1; // Прошлый урок закончили, скоро этот
+                        foundLessonIndex = i - 1;
                         break;
                     }
                 }
             }
 
-            // До начала первого урока
             if (currentMinutes < timeToMinutes(times[0].start)) {
                 statusEl.innerText = "Скоро начнется";
                 cNameEl.innerText = dayLessons[0];
@@ -314,7 +288,6 @@
                 return;
             }
 
-            // После окончания всех уроков
             const lastEndMin = timeToMinutes(times[times.length - 1].end);
             if (currentMinutes >= lastEndMin) {
                 statusEl.innerText = "День окончен";
@@ -326,7 +299,6 @@
             }
 
             if (foundLessonIndex !== -1 && !isBreak) {
-                // ИНФОРМАЦИЯ ПРО ТЕКУЩИЙ УРОК
                 statusEl.innerText = `Урок ${foundLessonIndex + 1} из ${times.length}`;
                 cNameEl.innerText = dayLessons[foundLessonIndex] || "Урок";
                 cTimeEl.innerText = `${times[foundLessonIndex].start} - ${times[foundLessonIndex].end}`;
@@ -336,16 +308,13 @@
                 let progress = ((currentSecondsTotal - sSec) / (eSec - sSec)) * 100;
                 progressBar.style.width = Math.min(Math.max(progress, 0), 100) + "%";
 
-                // Следующий урок
                 nextNameEl.innerText = dayLessons[foundLessonIndex + 1] ? (foundLessonIndex + 2) + ". " + dayLessons[foundLessonIndex + 1] : "Домой!";
 
             } else if (isBreak) {
-                // ПЕРЕМЕНА
                 let nextLessonIdx = foundLessonIndex + 1;
                 statusEl.innerText = "Перемена ☕";
                 cNameEl.innerText = "Отдыхаем";
-                cTime до = `${times[foundLessonIndex].end} - ${times[nextLessonIdx].start}`;
-                cTimeEl.innerText = c до;
+                cTimeEl.innerText = `${times[foundLessonIndex].end} - ${times[nextLessonIdx].start}`;
 
                 let sSec = timeToMinutes(times[foundLessonIndex].end) * 60;
                 let eSec = timeToMinutes(times[nextLessonIdx].start) * 60;
