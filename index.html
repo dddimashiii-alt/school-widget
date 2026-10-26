@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание 10 «В»</title>
+    <style>
+        :root {
+            --bg-color: #6B8E69;
+            --card-bg: rgba(107, 142, 105, 0.85);
+            --card-border: rgba(255, 255, 255, 0.25);
+            --text-main: #FFFFFF;
+            --text-secondary: #E8F0E6;
+            --accent: #A3C1AD;
+            --highlight: #D8E2DC;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 12px;
+            color: var(--text-main);
+        }
+
+        .widget-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 16px 20px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 8px;
+        }
+
+        .current-lesson-box {
+            margin-bottom: 12px;
+        }
+
+        .status-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--highlight);
+            margin-bottom: 3px;
+        }
+
+        .lesson-name {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .lesson-time {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #FFFFFF;
+            width: 0%;
+            transition: width 0.5s linear;
+            border-radius: 2px;
+        }
+
+        .next-lesson-box {
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .next-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .next-val {
+            font-weight: 600;
+            text-align: right;
+            max-width: 70%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .day-switcher {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            gap: 4px;
+        }
+
+        .day-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 0;
+            flex: 1;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .day-btn.active {
+            background: #FFFFFF;
+            color: #4A6B48;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="widget-card">
+        <div class="header">
+            <span id="current-date">Загрузка...</span>
+            <span id="class-title">10 «В»</span>
+        </div>
+
+        <div class="current-lesson-box">
+            <div class="status-label" id="status-title">Идет урок</div>
+            <div class="lesson-name" id="current-name">Минутку...</div>
+            <div class="lesson-time" id="current-time">--:-- - --:--</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+
+        <div class="next-lesson-box">
+            <div>
+                <div class="next-label">Дальше:</div>
+            </div>
+            <div class="next-val" id="next-name">Нет данных</div>
+        </div>
+
+        <div class="day-switcher" id="switcher">
+            <button class="day-btn" onclick="setManualDay(1)">ПН</button>
+            <button class="day-btn" onclick="setManualDay(2)">ВТ</button>
+            <button class="day-btn" onclick="setManualDay(3)">СР</button>
+            <button class="day-btn" onclick="setManualDay(4)">ЧТ</button>
+            <button class="day-btn" onclick="setManualDay(5)">ПТ</button>
+            <button class="day-btn active" onclick="setManualDay(0)" style="flex: 1.2;">Авто</button>
+        </div>
+    </div>
+
+    <script>
+        // Расписание 10 "В" (1 - Пн, 2 - Вт, 3 - Ср, 4 - Чт, 5 - Пт)
+        const schedule = {
+            1: [
+                "Классный час", "Физика", "Информатика", "Алгебра", 
+                "Русский язык", "Иностранный язык", "Биология"
+            ],
+            2: [
+                "Биология", "Казахский язык", "История Казахстана", "Алгебра", 
+                "География", "Геометрия", "Физкультура (А)"
+            ],
+            3: [
+                "Русская литература", "Химия", "Алгебра", "История Казахстана", 
+                "Казахский язык", "Иностранный язык", "Физкультура (Б)"
+            ],
+            4: [
+                "Геометрия", "Физика", "Казахский язык", "Иностранный язык", 
+                "Осн.пр.", "Физкультура (А)", "НВП"
+            ],
+            5: [
+                "Русская литература", "Всемирная История", "Алгебра", 
+                "Химия", "Информатика", "Казахский язык", "География"
+            ]
+        };
+
+        // Время уроков (1 смена: 08:00 - 13:55)
+        const times = [
+            { start: "08:00", end: "08:45" },
+            { start: "08:50", end: "09:35" },
+            { start: "09:45", end: "10:30" },
+            { start: "10:40", end: "11:25" },
+            { start: "11:30", end: "12:15" },
+            { start: "12:20", end: "13:05" },
+            { start: "13:10", end: "13:55" }
+        ];
+
+        let manualDayOverride = 0; // 0 - авто по реальному дню
+
+        function setManualDay(day) {
+            manualDayOverride = day;
+            document.querySelectorAll('.day-btn').forEach((btn, idx) => {
+                if ((day === 0 && idx === 5) || (day > 0 && idx === day - 1)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            updateWidget();
+        }
+
+        function timeToMinutes(tStr) {
+            const [h, m] = tStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function updateWidget() {
+            const now = new Date();
+            
+            // Дата сверху
+            const options = { weekday: 'short', month: 'numeric', day: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('ru-RU', options);
+
+            let jsDay = now.getDay(); // 0 - вс, 1 - пн ... 6 - сб
+            let activeDay = manualDayOverride > 0 ? manualDayOverride : jsDay;
+
+            const cNameEl = document.getElementById('current-name');
+            const cTimeEl = document.getElementById('current-time');
+            const statusEl = document.getElementById('status-title');
+            const nextNameEl = document.getElementById('next-name');
+            const progressBar = document.getElementById('progress');
+
+            // Если выходной или ручной день вне пн-пт
+            if (activeDay < 1 || activeDay > 5) {
+                statusEl.innerText = "Выходной";
+                cNameEl.innerText = "Отдыхаем 🎉";
+                cTimeEl.innerText = "Уроков нет";
+                nextNameEl.innerText = "ПН: " + schedule[1][0];
+                progressBar.style.width = "0%";
+                return;
+            }
+
+            const dayLessons = schedule[activeDay];
+
+            if (manualDayOverride > 0) {
+                // Если выбран конкретный день кнопкой, показываем просто список первого урока или весь день
+                statusEl.innerText = `День недели (${['ПН','ВТ','СР','ЧТ','ПТ'][activeDay-1]})`;
+                cNameEl.innerText = dayLessons[0] || "Нет уроков";
+                cTimeEl.innerText = `Всего уроков: ${dayLessons.length}`;
+                nextNameEl.innerText = dayLessons[1] || "Конец";
+                progressBar.style.width = "100%";
+                return;
+            }
+
+            // Режим реального времени (Авто)
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const currentSecondsTotal = currentMinutes * 60 + now.getSeconds();
+
+            let foundLessonIndex = -1;
+            let isBreak = false;
+            let nextIndex = 0;
+
+            for (let i = 0; i < times.length; i++) {
+                let sMin = timeToMinutes(times[i].start);
+                let eMin = timeToMinutes(times[i].end);
+
+                // Идет урок
+                if (currentMinutes >= sMin && currentMinutes < eMin) {
+                    foundLessonIndex = i;
+                    break;
+                }
+                // Перемена перед этим или между уроками
+                if (i > 0) {
+                    let prevEMin = timeToMinutes(times[i-1].end);
+                    if (currentMinutes >= prevEMin && currentMinutes < sMin) {
+                        isBreak = true;
+                        foundLessonIndex = i - 1; // Прошлый урок закончили, скоро этот
+                        break;
+                    }
+                }
+            }
+
+            // До начала первого урока
+            if (currentMinutes < timeToMinutes(times[0].start)) {
+                statusEl.innerText = "Скоро начнется";
+                cNameEl.innerText = dayLessons[0];
+                cTimeEl.innerText = `Начало в ${times[0].start}`;
+                nextNameEl.innerText = dayLessons[1] || "-";
+                progressBar.style.width = "0%";
+                return;
+            }
+
+            // После окончания всех уроков
+            const lastEndMin = timeToMinutes(times[times.length - 1].end);
+            if (currentMinutes >= lastEndMin) {
+                statusEl.innerText = "День окончен";
+                cNameEl.innerText = "Уроки завершены 🙌";
+                cTimeEl.innerText = "Все молодцы!";
+                nextNameEl.innerText = "До завтра";
+                progressBar.style.width = "100%";
+                return;
+            }
+
+            if (foundLessonIndex !== -1 && !isBreak) {
+                // ИНФОРМАЦИЯ ПРО ТЕКУЩИЙ УРОК
+                statusEl.innerText = `Урок ${foundLessonIndex + 1} из ${times.length}`;
+                cNameEl.innerText = dayLessons[foundLessonIndex] || "Урок";
+                cTimeEl.innerText = `${times[foundLessonIndex].start} - ${times[foundLessonIndex].end}`;
+                
+                let sSec = timeToMinutes(times[foundLessonIndex].start) * 60;
+                let eSec = timeToMinutes(times[foundLessonIndex].end) * 60;
+                let progress = ((currentSecondsTotal - sSec) / (eSec - sSec)) * 100;
+                progressBar.style.width = Math.min(Math.max(progress, 0), 100) + "%";
+
+                // Следующий урок
+                nextNameEl.innerText = dayLessons[foundLessonIndex + 1] ? (foundLessonIndex + 2) + ". " + dayLessons[foundLessonIndex + 1] : "Домой!";
+
+            } else if (isBreak) {
+                // ПЕРЕМЕНА
+                let nextLessonIdx = foundLessonIndex + 1;
+                statusEl.innerText = "Перемена ☕";
+                cNameEl.innerText = "Отдыхаем";
+                cTime до = `${times[foundLessonIndex].end} - ${times[nextLessonIdx].start}`;
+                cTimeEl.innerText = c до;
+
+                let sSec = timeToMinutes(times[foundLessonIndex].end) * 60;
+                let eSec = timeToMinutes(times[nextLessonIdx].start) * 60;
+                let progress = ((currentSecondsTotal - sSec) / (eSec - sSec)) * 100;
+                progressBar.style.width = Math.min(Math.max(progress, 0), 100) + "%";
+
+                nextNameEl.innerText = (nextLessonIdx + 1) + ". " + (dayLessons[nextLessonIdx] || "Конец");
+            }
+        }
+
+        setInterval(updateWidget, 1000);
+        updateWidget();
+    </script>
+</body>
+</html>
