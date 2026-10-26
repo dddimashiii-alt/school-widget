@@ -6,8 +6,8 @@
     <title>Расписание 10 «В»</title>
     <style>
         :root {
-            --bg-color: #6B8E69;
-            --card-bg: rgba(107, 142, 105, 0.85);
+            --bg-color: transparent;
+            --card-bg: rgba(107, 142, 105, 0.90);
             --card-border: rgba(255, 255, 255, 0.25);
             --text-main: #FFFFFF;
             --text-secondary: #E8F0E6;
@@ -26,9 +26,10 @@
             background-color: transparent;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 12px;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
             color: var(--text-main);
         }
 
@@ -37,27 +38,27 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--card-border);
-            border-radius: 22px;
-            padding: 16px 20px;
+            border-radius: 20px;
+            padding: 14px 18px;
             width: 100%;
             max-width: 360px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         .current-lesson-box {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .status-label {
@@ -65,11 +66,11 @@
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: var(--highlight);
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .lesson-name {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
             line-height: 1.2;
             word-break: break-word;
@@ -86,7 +87,7 @@
             height: 4px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
-            margin: 10px 0;
+            margin: 8px 0;
             overflow: hidden;
         }
 
@@ -100,8 +101,8 @@
 
         .next-lesson-box {
             background: rgba(0, 0, 0, 0.12);
-            border-radius: 12px;
-            padding: 8px 12px;
+            border-radius: 10px;
+            padding: 7px 10px;
             font-size: 13px;
             display: flex;
             justify-content: space-between;
@@ -125,7 +126,7 @@
         .day-switcher {
             display: flex;
             justify-content: space-between;
-            margin-top: 12px;
+            margin-top: 10px;
             gap: 4px;
         }
 
